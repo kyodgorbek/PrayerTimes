@@ -49,9 +49,7 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 androidx-navigation-compose-v277 = { module = "androidx.navigation:navigation-compose", version.ref = "navigationComposeVersion" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
 core = { module = "com.google.ar:core", version.ref = "core" }
-core-v1150 = { module = "com.google.ar.sceneform:core", version.ref = "googleCoreVersion" }
-core-v1380 = { module = "com.google.ar:core", version.ref = "comGoogleArCore" }
-core-v1410 = { module = "com.google.ar:core", version.ref = "googleCore" }
+
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -81,8 +79,7 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
 material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
-sceneform-core = { module = "com.google.ar.sceneform:core", version.ref = "coreVersion" }
-sceneform-ux = { module = "com.google.ar.sceneform:sceneform-ux", version.ref = "sceneformUx" }
+
 ui = { module = "androidx.compose.ui:ui", version.ref = "ui" }
 
 [plugins]

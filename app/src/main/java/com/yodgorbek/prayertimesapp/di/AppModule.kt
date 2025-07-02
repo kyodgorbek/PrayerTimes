@@ -1,4 +1,3 @@
-// AppModule.kt
 package com.yodgorbek.prayertimesapp.di
 
 import android.content.Context
@@ -6,7 +5,13 @@ import androidx.room.Room
 import androidx.work.WorkManager
 import com.yodgorbek.prayertimesapp.data.local.AppDatabase
 import com.yodgorbek.prayertimesapp.data.remote.ApiService
+import com.yodgorbek.prayertimesapp.data.repository.PrayerTimeRepositoryImpl
+
+import com.yodgorbek.prayertimesapp.domain.repository.PrayerTimeRepository
+import com.yodgorbek.prayertimesapp.domain.repository.SettingsRepository
 import com.yodgorbek.prayertimesapp.util.LocationHelper
+import com.yodgorbek.prayertimesapp.util.SettingsRepositoryImpl
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,7 +26,20 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object AppModule {
+abstract class AppModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindPrayerTimeRepository(prayerTimeRepositoryImpl: PrayerTimeRepositoryImpl): PrayerTimeRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSettingsRepository(settingsRepositoryImpl: SettingsRepositoryImpl): SettingsRepository
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object AppModuleProvides {
 
     @Provides
     @Singleton

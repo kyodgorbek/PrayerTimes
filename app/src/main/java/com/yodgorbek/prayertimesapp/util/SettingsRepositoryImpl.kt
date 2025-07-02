@@ -9,13 +9,14 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.yodgorbek.prayertimesapp.domain.model.Settings
 import com.yodgorbek.prayertimesapp.domain.repository.SettingsRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 class SettingsRepositoryImpl @Inject constructor(
-    private val context: Context
+   @ApplicationContext private val context: Context
 ) : SettingsRepository {
     private val LANGUAGE_KEY = stringPreferencesKey("language")
     private val NOTIFICATIONS_ENABLED_KEY = booleanPreferencesKey("notifications_enabled")

@@ -43,6 +43,17 @@ android {
     ksp {
         arg("room.schemaLocation", "$projectDir/schemas")
     }
+    packagingOptions {
+        exclude("META-INF/DEPENDENCIES")
+        exclude("META-INF/LICENSE")
+        exclude("META-INF/LICENSE.txt")
+        exclude("META-INF/NOTICE")
+        exclude("META-INF/NOTICE.txt")
+
+        pickFirst("META-INF/INDEX.LIST")
+        pickFirst("META-INF/io.netty.versions.properties")
+    }
+
 }
 
 dependencies {
@@ -76,13 +87,9 @@ dependencies {
     implementation(libs.material3)
     implementation(libs.androidx.foundation)
     implementation(libs.androidx.navigation.compose.v277)
-    implementation(libs.sceneform.core)
+
         // Sceneform UX for ArFragment
-        implementation("com.google.ar.sceneform.ux:sceneform-ux:1.17.1")
-        // Sceneform core for AR functionality
-        implementation(libs.core.v1150)
-        // AR Core library
-        implementation(libs.core.v1380)
+
     implementation(libs.ui) // Use the latest version
     implementation(libs.androidx.material) // Use the latest version
     implementation("androidx.compose.ui:ui-tooling-preview:1.8.3") // For previews
@@ -93,13 +100,12 @@ dependencies {
     // Material Icons Extended (for Icons.Default.Schedule)
     implementation("androidx.compose.material:material-icons-extended:1.7.0") // Use the latest version
 
-
-    implementation(libs.core.v1410) // ARCore latest version
+    // ARCore latest version
     implementation(libs.androidx.activity.compose.v190)
     implementation(libs.androidx.lifecycle.runtime.ktx.v270)
 
     implementation(libs.core)
-    implementation(libs.sceneform.ux)
+
     implementation(libs.androidx.datastore.preferences)
     ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.ui)

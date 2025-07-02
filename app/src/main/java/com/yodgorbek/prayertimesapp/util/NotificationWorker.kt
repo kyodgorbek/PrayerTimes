@@ -1,10 +1,13 @@
 package com.yodgorbek.prayertimesapp.util
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import java.io.IOException
@@ -25,27 +28,39 @@ class NotificationWorker(
             try {
                 val assetFileDescriptor = applicationContext.assets.openFd(azanSound)
                 MediaPlayer().apply {
-                    setDataSource(assetFileDescriptor.fileDescriptor, assetFileDescriptor.startOffset, assetFileDescriptor.length)
+                    setDataSource(
+                        assetFileDescriptor.fileDescriptor,
+                        assetFileDescriptor.startOffset,
+                        assetFileDescriptor.length
+                    )
                     prepare()
                     start()
                     setOnCompletionListener { release() }
                 }
             } catch (e: IOException) {
                 Log.e("NotificationWorker", "Failed to play $azanSound: ${e.message}")
-                return Result.retry() // Retry if file not found or error occurs
+                return Result.retry()
             }
         }
 
-        // Show notification
-        val builder = NotificationCompat.Builder(applicationContext, "prayer_channel")
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle("Prayer Time")
-            .setContentText("$prayerName at $prayerTime")
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setAutoCancel(true)
+        // Show notification if permission is granted (Android 13+ requires this)
+        if (ContextCompat.checkSelfPermission(
+                applicationContext,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            val builder = NotificationCompat.Builder(applicationContext, "prayer_channel")
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setContentTitle("Prayer Time")
+                .setContentText("$prayerName at $prayerTime")
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
 
-        with(NotificationManagerCompat.from(applicationContext)) {
-            notify(prayerName.hashCode(), builder.build())
+            with(NotificationManagerCompat.from(applicationContext)) {
+                notify(prayerName.hashCode(), builder.build())
+            }
+        } else {
+            Log.w("NotificationWorker", "POST_NOTIFICATIONS permission not granted")
         }
 
         return Result.success()
