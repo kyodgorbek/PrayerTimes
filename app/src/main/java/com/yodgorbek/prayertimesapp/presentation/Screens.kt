@@ -7,6 +7,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.media.MediaPlayer
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
@@ -206,8 +207,41 @@ fun PrayerTimeScreen(viewModel: PrayerTimeViewModel, context: Context) {
         }
         Spacer(modifier = Modifier.height(16.dp))
         PrayerTimeContent(uiState, context)
+        uiState.prayerTime?.let { prayerTime ->
+            val nextPrayer = uiState.nextPrayer
+            val azanSound = when (nextPrayer) {
+                "Fajr" -> uiState.settings.fajrAzanSound
+                "Dhuhr" -> uiState.settings.dhuhrAzanSound
+                "Asr" -> uiState.settings.asrAzanSound
+                "Maghrib" -> uiState.settings.maghribAzanSound
+                "Isha" -> uiState.settings.ishaAzanSound
+                else -> uiState.settings.fajrAzanSound // Default to Fajr
+            }
+            Button(
+                onClick = {
+                    if (uiState.settings.azanSoundEnabled) {
+                        try {
+                            val assetFileDescriptor = context.assets.openFd(azanSound)
+                            MediaPlayer().apply {
+                                setDataSource(assetFileDescriptor.fileDescriptor, assetFileDescriptor.startOffset, assetFileDescriptor.length)
+                                prepare()
+                                start()
+                                setOnCompletionListener { release() }
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace() // Handle error (e.g., show toast)
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = uiState.settings.azanSoundEnabled
+            ) {
+                Text("Play ${nextPrayer ?: "Fajr"} Azan")
+            }
+        }
     }
 }
+
 
 @Composable
 fun PrayerTimeContent(uiState: PrayerTimeUiState, context: Context) {

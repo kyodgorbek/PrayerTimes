@@ -1,85 +1,53 @@
 package com.yodgorbek.prayertimesapp.util
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
-import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.work.CoroutineWorker
+import androidx.core.app.NotificationManagerCompat
+import androidx.work.Worker
 import androidx.work.WorkerParameters
-import com.yodgorbek.prayertimesapp.R
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import java.io.IOException
 
 class NotificationWorker(
-    appContext: Context,
+    context: Context,
     params: WorkerParameters
-) : CoroutineWorker(appContext, params) {
-    override suspend fun doWork(): Result {
+) : Worker(context, params) {
+
+    override fun doWork(): Result {
         val prayerName = inputData.getString("prayerName") ?: return Result.failure()
         val prayerTime = inputData.getString("prayerTime") ?: return Result.failure()
         val azanSound = inputData.getString("azanSound") ?: return Result.failure()
-        val azanSoundEnabled = inputData.getBoolean("azanSoundEnabled", true)
+        val azanSoundEnabled = inputData.getBoolean("azanSoundEnabled", false)
 
-        sendNotification(prayerName, prayerTime, azanSound, azanSoundEnabled)
-        return Result.success()
-    }
-
-    private suspend fun sendNotification(prayerName: String, prayerTime: String, azanSound: String, azanSoundEnabled: Boolean) {
-        val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val channelId = "prayer_notifications"
-        val channel = NotificationChannel(
-            channelId,
-            "Prayer Times",
-            NotificationManager.IMPORTANCE_DEFAULT
-        ).apply {
-            if (!azanSoundEnabled) {
-                setSound(null, null)
-            }
-        }
-        notificationManager.createNotificationChannel(channel)
-
-        val notification = NotificationCompat.Builder(applicationContext, channelId)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(applicationContext.getString(R.string.notification_title, prayerName))
-            .setContentText(applicationContext.getString(R.string.notification_text, prayerName, prayerTime))
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setAutoCancel(true)
-            .apply {
-                if (!azanSoundEnabled) {
-                    setSound(null)
-                }
-            }
-            .build()
-
+        // Play Azan sound if enabled
         if (azanSoundEnabled) {
-            withContext(Dispatchers.IO) {
-                playAzanSound(azanSound)
+            try {
+                val assetFileDescriptor = applicationContext.assets.openFd(azanSound)
+                MediaPlayer().apply {
+                    setDataSource(assetFileDescriptor.fileDescriptor, assetFileDescriptor.startOffset, assetFileDescriptor.length)
+                    prepare()
+                    start()
+                    setOnCompletionListener { release() }
+                }
+            } catch (e: IOException) {
+                Log.e("NotificationWorker", "Failed to play $azanSound: ${e.message}")
+                return Result.retry() // Retry if file not found or error occurs
             }
         }
 
-        notificationManager.notify(prayerName.hashCode(), notification)
-    }
+        // Show notification
+        val builder = NotificationCompat.Builder(applicationContext, "prayer_channel")
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle("Prayer Time")
+            .setContentText("$prayerName at $prayerTime")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
 
-    private fun playAzanSound(azanSound: String) {
-        try {
-            val assetFileDescriptor = applicationContext.assets.openFd(azanSound)
-            MediaPlayer().apply {
-                setDataSource(assetFileDescriptor.fileDescriptor, assetFileDescriptor.startOffset, assetFileDescriptor.length)
-                setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                        .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-                        .build()
-                )
-                prepare()
-                start()
-                setOnCompletionListener { release() }
-                assetFileDescriptor.close()
-            }
-        } catch (e: Exception) {
-            // Log error
+        with(NotificationManagerCompat.from(applicationContext)) {
+            notify(prayerName.hashCode(), builder.build())
         }
+
+        return Result.success()
     }
 }
