@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Namoz vaqtlari</string>
+    <string name="prayer_times">Namoz vaqtlari</string>
+    <string name="qibla">Qibla</string>
+    <string name="cities">Shaharlar</string>
+    <string name="settings">Sozlamalar</string>
+    <string name="city">Shahar</string>
+    <string name="country">Davlat</string>
+    <string name="latitude">Kenglik</string>
+    <string name="longitude">Uzunlik</string>
+    <string name="get_prayer_times">Namoz vaqtlarini olish</string>
+    <string name="use_location">Joriy joylashuvdan foydalanish</string>
+    <string name="suggest_city">Shahar taklif qilish</string>
+    <string name="add_city">Shahar qo\'shish</string>
+    <string name="saved_cities">Saqlangan shaharlar</string>
+    <string name="fajr">Bomdod</string>
+    <string name="dhuhr">Peshin</string>
+    <string name="asr">Asr</string>
+    <string name="maghrib">Shom</string>
+    <string name="isha">Xufton</string>
+    <string name="prayer_time_for">%s uchun namoz vaqtlari</string>
+    <string name="error">Xato: %s</string>
+    <string name="qibla_instruction">Qurilmaning yuqori qismini Qibla tomon yo\'naltiring</string>
+    <string name="qibla_no_location">Qibla uchun joylashuvni yoqing yoki shahar tanlang</string>
+    <string name="calibrate_compass">Kompasni sakkiz shaklida aylantirib sozlang</string>
+    <string name="ar_qibla_instruction">Kamerani Qibla topish uchun yo\'naltiring</string>
+    <string name="ar_not_supported">Bu qurilmada AR qo\'llab-quvvatlanmaydi</string>
+    <string name="notification_title">%s namozi</string>
+    <string name="notification_text">%s namozi vaqti %s</string>
+    <string name="delete">O\'chirish</string>
+    <string name="language">Til</string>
+    <string name="english">Inglizcha</string>
+    <string name="russian">Ruscha</string>
+    <string name="uzbek">O\'zbekcha</string>
+    <string name="german">Nemisch</string>
+    <string name="notifications">Bildirishnomalar</string>
+    <string name="enable_notifications">Bildirishnomalarni yoqish</string>
+    <string name="notification_sound">Bildirishnoma ovozi</string>
+    <string name="enable_azan_sound">Azon ovozini yoqish</string>
+    <string name="azan_sound_fajr">Bomdod Azon ovozi</string>
+    <string name="azan_sound_dhuhr">Peshin Azon ovozi</string>
+    <string name="azan_sound_asr">Asr Azon ovozi</string>
+    <string name="azan_sound_maghrib">Shom Azon ovozi</string>
+    <string name="azan_sound_isha">Xufton Azon ovozi</string>
+    <string name="default_azan">Standart Azon</string>
+</resources>

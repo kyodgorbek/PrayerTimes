@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <string name="app_name">Gebetszeiten</string>
+    <string name="prayer_times">Gebetszeiten</string>
+    <string name="qibla">Qibla</string>
+    <string name="cities">Städte</string>
+    <string name="settings">Einstellungen</string>
+    <string name="city">Stadt</string>
+    <string name="country">Land</string>
+    <string name="latitude">Breitengrad</string>
+    <string name="longitude">Längengrad</string>
+    <string name="get_prayer_times">Gebetszeiten abrufen</string>
+    <string name="use_location">Aktuellen Standort verwenden</string>
+    <string name="suggest_city">Stadt vorschlagen</string>
+    <string name="add_city">Stadt hinzufügen</string>
+    <string name="saved_cities">Gespeicherte Städte</string>
+    <string name="fajr">Fadschr</string>
+    <string name="dhuhr">Dhuhr</string>
+    <string name="asr">Asr</string>
+    <string name="maghrib">Maghrib</string>
+    <string name="isha">Ischa</string>
+    <string name="prayer_time_for">Gebetszeiten für %s</string>
+    <string name="error">Fehler: %s</string>
+    <string name="qibla_instruction">Richten Sie die Oberseite Ihres Geräts auf die Qibla</string>
+    <string name="qibla_no_location">Aktivieren Sie den Standort oder wählen Sie eine Stadt für die Qibla</string>
+    <string name="calibrate_compass">Kalibrieren Sie den Kompass, indem Sie das Gerät in einer Acht drehen</string>
+    <string name="ar_qibla_instruction">Richten Sie die Kamera aus, um die Qibla zu finden</string>
+    <string name="ar_not_supported">AR wird auf diesem Gerät nicht unterstützt</string>
+    <string name="notification_title">%s Gebet</string>
+    <string name="notification_text">Es ist Zeit für %s um %s</string>
+    <string name="delete">Löschen</string>
+    <string name="language">Sprache</string>
+    <string name="english">Englisch</string>
+    <string name="russian">Russisch</string>
+    <string name="uzbek">Usbekisch</string>
+    <string name="german">Deutsch</string>
+    <string name="notifications">Benachrichtigungen</string>
+    <string name="enable_notifications">Benachrichtigungen aktivieren</string>
+    <string name="notification_sound">Benachrichtigungston</string>
+    <string name="enable_azan_sound">Azan-Ton aktivieren</string>
+    <string name="azan_sound_fajr">Fadschr Azan-Ton</string>
+    <string name="azan_sound_dhuhr">Dhuhr Azan-Ton</string>
+    <string name="azan_sound_asr">Asr Azan-Ton</string>
+    <string name="azan_sound_maghrib">Maghrib Azan-Ton</string>
+    <string name="azan_sound_isha">Ischa Azan-Ton</string>
+    <string name="default_azan">Standard Azan</string>
+</resources>
