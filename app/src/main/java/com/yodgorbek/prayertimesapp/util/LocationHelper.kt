@@ -10,30 +10,63 @@ import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.delay
 import java.util.Locale
 import android.Manifest
+import android.annotation.SuppressLint
+import android.os.Looper
+import com.google.android.gms.location.LocationAvailability
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.Priority
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
+import kotlin.coroutines.resume
 
 class LocationHelper(private val context: Context) {
     private val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
 
-    suspend fun getLastLocation(attempts: Int = 3): Pair<Double, Double>? {
-        if (ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+    @SuppressLint("MissingPermission")
+    suspend fun getLastLocation(): Pair<Double, Double>? {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return null
         }
-        repeat(attempts) { attempt ->
-            try {
-                val location = fusedLocationClient.lastLocation.await()
-                return location?.let { Pair(it.latitude, it.longitude) }
-            } catch (e: Exception) {
-                delay(1000L * (attempt + 1)) // Exponential backoff
+
+        val last = fusedLocationClient.lastLocation.await()
+        if (last != null) {
+            return Pair(last.latitude, last.longitude)
+        }
+
+        return suspendCancellableCoroutine { continuation ->
+            val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
+                .setMaxUpdates(1)
+                .build()
+
+            val callback = object : LocationCallback() {
+                override fun onLocationResult(result: LocationResult) {
+                    fusedLocationClient.removeLocationUpdates(this)
+                    val location = result.lastLocation
+                    if (location != null) {
+                        continuation.resume(Pair(location.latitude, location.longitude))
+                    } else {
+                        continuation.resume(null)
+                    }
+                }
+
+                override fun onLocationAvailability(p0: LocationAvailability) {
+                    if (!p0.isLocationAvailable) {
+                        fusedLocationClient.removeLocationUpdates(this)
+                        continuation.resume(null)
+                    }
+                }
+            }
+
+            fusedLocationClient.requestLocationUpdates(request, callback, Looper.getMainLooper())
+            continuation.invokeOnCancellation {
+                fusedLocationClient.removeLocationUpdates(callback)
             }
         }
-        return null
     }
+
 
     suspend fun getCityFromLocation(latitude: Double, longitude: Double): Triple<String, String, String>? {
         try {
