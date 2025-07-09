@@ -226,15 +226,22 @@ fun PrayerTimeScreen(viewModel: PrayerTimeViewModel, context: Context) {
                 onClick = {
                     if (uiState.settings.azanSoundEnabled) {
                         try {
-                            val assetFileDescriptor = context.assets.openFd(azanSound)
-                            MediaPlayer().apply {
-                                setDataSource(assetFileDescriptor.fileDescriptor, assetFileDescriptor.startOffset, assetFileDescriptor.length)
-                                prepare()
+                            val rawResId = when (nextPrayer) {
+                                "Fajr" -> R.raw.azan_fajr
+                                "Dhuhr" -> R.raw.azan_dhuhr
+                                "Asr" -> R.raw.azan_asr
+                                "Maghrib" -> R.raw.azan_maghrib
+                                "Isha" -> R.raw.azan_isha
+                                else -> R.raw.azan_fajr
+                            }
+
+                            val mediaPlayer = MediaPlayer.create(context, rawResId)
+                            mediaPlayer?.apply {
                                 start()
                                 setOnCompletionListener { release() }
                             }
                         } catch (e: Exception) {
-                            e.printStackTrace() // Handle error (e.g., show toast)
+                            e.printStackTrace()
                         }
                     }
                 },
@@ -243,6 +250,7 @@ fun PrayerTimeScreen(viewModel: PrayerTimeViewModel, context: Context) {
             ) {
                 Text("Play ${nextPrayer ?: "Fajr"} Azan")
             }
+
         }
     }
 }

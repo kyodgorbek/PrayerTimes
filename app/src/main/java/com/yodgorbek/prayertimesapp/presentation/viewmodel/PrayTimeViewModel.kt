@@ -16,13 +16,13 @@ import com.yodgorbek.prayertimesapp.util.NotificationWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
+import java.util.*
+import javax.inject.Inject
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
+import android.util.Log
 
 data class PrayerTimeUiState(
     val isLoading: Boolean = false,
@@ -45,6 +45,7 @@ class PrayerTimeViewModel @Inject constructor(
     private val locationHelper: LocationHelper,
     private val workManager: WorkManager
 ) : ViewModel() {
+
     private val _uiState = mutableStateOf(PrayerTimeUiState())
     val uiState: State<PrayerTimeUiState> = _uiState
 
@@ -59,21 +60,20 @@ class PrayerTimeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             val result = getPrayerTimesByCityUseCase(city, country, latitude, longitude)
-            _uiState.value = when {
-                result.isSuccess -> {
-                    val prayerTime = result.getOrNull()
-                    if (_uiState.value.settings.notificationsEnabled) {
-                        prayerTime?.let { scheduleNotifications(it, city) }
-                    }
-                    _uiState.value.copy(
-                        prayerTime = prayerTime,
-                        nextPrayer = calculateNextPrayer(prayerTime),
-                        isLoading = false,
-                        selectedCity = City(city, country, latitude, longitude),
-                        error = null
-                    )
+            _uiState.value = if (result.isSuccess) {
+                val prayerTime = result.getOrNull()
+                if (_uiState.value.settings.notificationsEnabled) {
+                    prayerTime?.let { scheduleNotifications(it) }
                 }
-                else -> _uiState.value.copy(
+                _uiState.value.copy(
+                    prayerTime = prayerTime,
+                    nextPrayer = calculateNextPrayer(prayerTime),
+                    isLoading = false,
+                    selectedCity = City(city, country, latitude, longitude),
+                    error = null
+                )
+            } else {
+                _uiState.value.copy(
                     error = result.exceptionOrNull()?.message ?: "Unknown error",
                     isLoading = false
                 )
@@ -87,22 +87,21 @@ class PrayerTimeViewModel @Inject constructor(
             val location = locationHelper.getLastLocation()
             if (location != null) {
                 val result = getPrayerTimesByLocationUseCase(location.first, location.second)
-                _uiState.value = when {
-                    result.isSuccess -> {
-                        val prayerTime = result.getOrNull()
-                        if (_uiState.value.settings.notificationsEnabled) {
-                            prayerTime?.let { scheduleNotifications(it, "Current Location") }
-                        }
-                        _uiState.value.copy(
-                            prayerTime = prayerTime,
-                            currentLocation = location,
-                            nextPrayer = calculateNextPrayer(prayerTime),
-                            isLoading = false,
-                            selectedCity = null,
-                            error = null
-                        )
+                _uiState.value = if (result.isSuccess) {
+                    val prayerTime = result.getOrNull()
+                    if (_uiState.value.settings.notificationsEnabled) {
+                        prayerTime?.let { scheduleNotifications(it) }
                     }
-                    else -> _uiState.value.copy(
+                    _uiState.value.copy(
+                        prayerTime = prayerTime,
+                        currentLocation = location,
+                        nextPrayer = calculateNextPrayer(prayerTime),
+                        isLoading = false,
+                        selectedCity = null,
+                        error = null
+                    )
+                } else {
+                    _uiState.value.copy(
                         error = result.exceptionOrNull()?.message ?: "Unknown error",
                         isLoading = false
                     )
@@ -164,7 +163,7 @@ class PrayerTimeViewModel @Inject constructor(
         }
     }
 
-    private fun scheduleNotifications(prayerTime: PrayerTime, city: String) {
+    private fun scheduleNotifications(prayerTime: PrayerTime) {
         val prayers = listOf(
             "Fajr" to Pair(prayerTime.fajr, _uiState.value.settings.fajrAzanSound),
             "Dhuhr" to Pair(prayerTime.dhuhr, _uiState.value.settings.dhuhrAzanSound),
@@ -173,18 +172,20 @@ class PrayerTimeViewModel @Inject constructor(
             "Isha" to Pair(prayerTime.isha, _uiState.value.settings.ishaAzanSound)
         )
         val sdf = SimpleDateFormat("HH:mm:ss", Locale.US)
-        val calendar = Calendar.getInstance()
+        val now = Calendar.getInstance()
+
         for (dayOffset in 0..6) {
             prayers.forEach { (name, pair) ->
-                val time = pair.first
-                val azanSound = pair.second
+                val (time, azanSound) = pair
                 try {
                     val parsedTime = sdf.parse(time) ?: return@forEach
+                    val calendar = Calendar.getInstance()
                     calendar.time = parsedTime
-                    calendar.set(Calendar.YEAR, Calendar.getInstance().get(Calendar.YEAR))
-                    calendar.set(Calendar.MONTH, Calendar.getInstance().get(Calendar.MONTH))
-                    calendar.set(Calendar.DAY_OF_MONTH, Calendar.getInstance().get(Calendar.DAY_OF_MONTH) + dayOffset)
+                    calendar.set(Calendar.YEAR, now.get(Calendar.YEAR))
+                    calendar.set(Calendar.MONTH, now.get(Calendar.MONTH))
+                    calendar.set(Calendar.DAY_OF_MONTH, now.get(Calendar.DAY_OF_MONTH) + dayOffset)
                     calendar.set(Calendar.SECOND, 0)
+
                     if (calendar.timeInMillis > System.currentTimeMillis()) {
                         val delay = calendar.timeInMillis - System.currentTimeMillis()
                         val data = Data.Builder()
@@ -200,7 +201,7 @@ class PrayerTimeViewModel @Inject constructor(
                         workManager.enqueue(workRequest)
                     }
                 } catch (e: Exception) {
-                    // Log error
+                    Log.e("PrayerTimeViewModel", "Failed to schedule $name: ${e.message}")
                 }
             }
         }
@@ -216,22 +217,24 @@ class PrayerTimeViewModel @Inject constructor(
             "Isha" to prayerTime.isha
         )
         val sdf = SimpleDateFormat("HH:mm:ss", Locale.US)
-        val currentTimeMillis = Calendar.getInstance().timeInMillis
-        for ((name, time) in prayers) {
+        val now = Calendar.getInstance().timeInMillis
+
+        for ((name, timeStr) in prayers) {
             try {
-                val parsedTime = sdf.parse(time) ?: continue
-                val prayerCalendar = Calendar.getInstance()
-                prayerCalendar.time = parsedTime
-                prayerCalendar.set(Calendar.HOUR_OF_DAY, parsedTime.hours)
-                prayerCalendar.set(Calendar.MINUTE, parsedTime.minutes)
-                prayerCalendar.set(Calendar.SECOND, 0)
-                if (prayerCalendar.timeInMillis > currentTimeMillis) {
+                val parsedTime = sdf.parse(timeStr) ?: continue
+                val prayerCal = Calendar.getInstance()
+                prayerCal.time = parsedTime
+                prayerCal.set(Calendar.HOUR_OF_DAY, parsedTime.hours)
+                prayerCal.set(Calendar.MINUTE, parsedTime.minutes)
+                prayerCal.set(Calendar.SECOND, 0)
+                if (prayerCal.timeInMillis > now) {
                     return name
                 }
             } catch (e: Exception) {
-                // Log error
+                Log.e("PrayerTimeViewModel", "Error parsing $name: $timeStr")
             }
         }
+
         return null
     }
 }

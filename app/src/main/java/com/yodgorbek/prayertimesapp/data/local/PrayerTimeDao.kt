@@ -2,11 +2,12 @@ package com.yodgorbek.prayertimesapp.data.local
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 
 @Dao
 interface PrayerTimeDao {
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(prayerTime: PrayerTimeEntity)
 
     @Query("SELECT * FROM prayer_times WHERE city = :city AND date = :date LIMIT 1")
